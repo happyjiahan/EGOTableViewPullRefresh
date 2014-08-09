@@ -231,7 +231,7 @@
         normalTop = [_delegate egoRefreshTableHeaderEdgeInsetTopInNormalState:self];
     }
 	
-	if (scrollView.contentOffset.y <= -1 * (normalTop + 1) && !_loading) {
+	if (scrollView.contentOffset.y <= -1 * (normalTop + 60) && !_loading) {
 		
 		if ([_delegate respondsToSelector:@selector(egoRefreshTableHeaderDidTriggerRefresh:)]) {
 			[_delegate egoRefreshTableHeaderDidTriggerRefresh:self];
