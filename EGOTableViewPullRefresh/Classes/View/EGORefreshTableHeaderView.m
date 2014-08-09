@@ -182,13 +182,18 @@
 #pragma mark -
 #pragma mark ScrollView Methods
 
-- (void)egoRefreshScrollViewDidScroll:(UIScrollView *)scrollView {	
-	
+- (void)egoRefreshScrollViewDidScroll:(UIScrollView *)scrollView {
+    CGFloat normalTop = 64;
+    if ([_delegate respondsToSelector:@selector(egoRefreshTableHeaderEdgeInsetTopInNormalState:)]) {
+        normalTop = [_delegate egoRefreshTableHeaderEdgeInsetTopInNormalState:self];
+    }
+    
 	if (_state == EGOOPullRefreshLoading) {
 		
 		CGFloat offset = MAX(scrollView.contentOffset.y * -1, 0);
-		offset = MIN(offset, 60);
-		scrollView.contentInset = UIEdgeInsetsMake(offset, 0.0f, 0.0f, 0.0f);
+		offset = MIN(offset, 60 + normalTop);
+        
+		scrollView.contentInset = UIEdgeInsetsMake(offset, scrollView.contentInset.left, scrollView.contentInset.bottom, scrollView.contentInset.right);
 		
 	} else if (scrollView.isDragging) {
 		
@@ -197,16 +202,19 @@
 			_loading = [_delegate egoRefreshTableHeaderDataSourceIsLoading:self];
 		}
 		
-		if (_state == EGOOPullRefreshPulling && scrollView.contentOffset.y > -65.0f && scrollView.contentOffset.y < 0.0f && !_loading) {
+		if (_state == EGOOPullRefreshPulling && scrollView.contentOffset.y > -1 * (normalTop + 60) && scrollView.contentOffset.y < -1 * normalTop && !_loading) {
 			[self setState:EGOOPullRefreshNormal];
-		} else if (_state == EGOOPullRefreshNormal && scrollView.contentOffset.y < -65.0f && !_loading) {
+		} else if (_state == EGOOPullRefreshNormal && scrollView.contentOffset.y < -1 * (normalTop + 60) && !_loading) {
 			[self setState:EGOOPullRefreshPulling];
 		}
 		
-		if (scrollView.contentInset.top != 0) {
-			scrollView.contentInset = UIEdgeInsetsZero;
-		}
-		
+        
+        if ([_delegate respondsToSelector:@selector(egoRefreshTableHeaderEdgeInsetTopInNormalState:)]) {
+            if (scrollView.contentInset.top != normalTop) {
+                scrollView.contentInset = UIEdgeInsetsMake(normalTop, scrollView.contentInset.left, scrollView.contentInset.bottom, scrollView.contentInset.right);
+            }
+        }
+        
 	}
 	
 }
@@ -217,8 +225,13 @@
 	if ([_delegate respondsToSelector:@selector(egoRefreshTableHeaderDataSourceIsLoading:)]) {
 		_loading = [_delegate egoRefreshTableHeaderDataSourceIsLoading:self];
 	}
+    
+    CGFloat normalTop = 64;
+    if ([_delegate respondsToSelector:@selector(egoRefreshTableHeaderEdgeInsetTopInNormalState:)]) {
+        normalTop = [_delegate egoRefreshTableHeaderEdgeInsetTopInNormalState:self];
+    }
 	
-	if (scrollView.contentOffset.y <= - 65.0f && !_loading) {
+	if (scrollView.contentOffset.y <= -1 * (normalTop + 1) && !_loading) {
 		
 		if ([_delegate respondsToSelector:@selector(egoRefreshTableHeaderDidTriggerRefresh:)]) {
 			[_delegate egoRefreshTableHeaderDidTriggerRefresh:self];
@@ -227,18 +240,23 @@
 		[self setState:EGOOPullRefreshLoading];
 		[UIView beginAnimations:nil context:NULL];
 		[UIView setAnimationDuration:0.2];
-		scrollView.contentInset = UIEdgeInsetsMake(60.0f, 0.0f, 0.0f, 0.0f);
+		scrollView.contentInset = UIEdgeInsetsMake(normalTop + 60.0f, scrollView.contentInset.left, scrollView.contentInset.bottom, scrollView.contentInset.right);
 		[UIView commitAnimations];
 		
 	}
 	
 }
 
-- (void)egoRefreshScrollViewDataSourceDidFinishedLoading:(UIScrollView *)scrollView {	
+- (void)egoRefreshScrollViewDataSourceDidFinishedLoading:(UIScrollView *)scrollView {
+    
+    CGFloat normalTop = 64;
+    if ([_delegate respondsToSelector:@selector(egoRefreshTableHeaderEdgeInsetTopInNormalState:)]) {
+        normalTop = [_delegate egoRefreshTableHeaderEdgeInsetTopInNormalState:self];
+    }
 	
 	[UIView beginAnimations:nil context:NULL];
 	[UIView setAnimationDuration:.3];
-	[scrollView setContentInset:UIEdgeInsetsMake(0.0f, 0.0f, 0.0f, 0.0f)];
+	[scrollView setContentInset:UIEdgeInsetsMake(normalTop, scrollView.contentInset.left, scrollView.contentInset.bottom, scrollView.contentInset.right)];
 	[UIView commitAnimations];
 	
 	[self setState:EGOOPullRefreshNormal];
